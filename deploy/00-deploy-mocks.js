@@ -6,7 +6,7 @@ const GAS_PRICE_LINK = 1e9 // 1000000000//link per gas.calculated value based o 
 
 module.exports = async function ({ getNamedAccounts, deployments }) {
     const { deploy, log } = deployments
-    const { deployer } = getNamedAccounts()
+    const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
     // const args = [BASE_FEE, GAS_PRICE_LINK]
 

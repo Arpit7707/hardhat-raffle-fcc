@@ -115,13 +115,14 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatible {
         bool hasBalance = address(this).balance > 0;
 
         upKeepNeeded = (isOpen && timePassed && hasPlayers && hasBalance);
+        return (upKeepNeeded, "0x0");
     }
 
     //This function will be called by "chainlink keepers network" so that it can run automaticlally without us interact with it
     //external functions are little bit cheaper than public functions coz only our own contract can call this
     function performUpkeep(
         bytes calldata /*checkData*/
-    ) external {
+    ) external override {
         //To pick a random numner::
         //Request a random number: function performUpkeep()
         //Once we get it, do something with it: function fulfillRandomWords()
@@ -200,5 +201,9 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatible {
 
     function getRequestConformation() public pure returns (uint256) {
         return REQUEST_CONFORMATIONS;
+    }
+
+    function getInterval() public view returns (uint256) {
+        return i_interval;
     }
 }

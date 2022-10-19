@@ -49,6 +49,11 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         waitConformations: network.config.blockConformations || 1,
     })
 
+    if (developementChains.includes(network.name)) {
+        const vrfCoordinatorV2 = await ethers.getContract("VRFCoordinatorV2Mock")
+        await vrfCoordinatorV2.addConsumer(subscriptionId, raffle.address)
+    }
+
     if (!chainId == 31337 && process.env.ETHERSCAN_API_KEY) {
         log("Verifying....")
         await verify(raffle.address, args)
