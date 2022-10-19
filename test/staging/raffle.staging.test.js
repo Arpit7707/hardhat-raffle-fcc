@@ -1,12 +1,14 @@
 const { assert, expect } = require("chai")
 const { network, getNamedAccounts, deployments, ethers } = require("hardhat")
-const { developementChains, networkConfig } = require("../../helper-hardhat-config")
+const {
+    developmentChains,
+    networkConfig,
+} = require("../../helper-hardhat-config")
 
-!developementChains.includes(network.name)
+developmentChains.includes(network.name)
     ? describe.skip
     : describe("Raffle", async function () {
-          let raffle, vrfCoordinatorV2Mock, raffleEntranceFee, deployer, interval
-          const chainId = network.config.chainId
+          let raffle, raffleEntranceFee, deployer
 
           beforeEach(async function () {
               deployer = (await getNamedAccounts()).deployer
@@ -17,25 +19,33 @@ const { developementChains, networkConfig } = require("../../helper-hardhat-conf
           describe("fulfillRandomWords", async function () {
               it("works with live chainlink keepers and chainlink VRF, we get a random winner", async function () {
                   //enter the raffle
+                  console.log("Setting up the test...")
                   const startingTimeStamp = await raffle.getLatestTimeStamp()
                   const accounts = await ethers.getSigners()
-
+                  console.log("Setting up the listener...")
                   await new Promise(async (resolve, reject) => {
                       raffle.once("winnerPicked", async () => {
                           console.log("WinnerPicked event fired!")
-                          resolve()
                           try {
-                              const recentWinner = await raffle.getRecentWinner()
+                              const recentWinner =
+                                  await raffle.getRecentWinner()
                               const raffleState = await raffle.getRaffleState()
-                              const winnerEndingBalance = await accounts[0].getBalance()
-                              const endingTimeStamp = await raffle.getLatestTimeStamp()
+                              const winnerEndingBalance =
+                                  await accounts[0].getBalance()
+                              const endingTimeStamp =
+                                  await raffle.getLatestTimeStamp()
 
-                              await expect(raffle.getPlayer(0)).to.be.reverted
-                              assert.equal(recentWinner.toString(), accounts[0].address)
+                              await expect(raffle.getPlayers(0)).to.be.reverted
+                              assert.equal(
+                                  recentWinner.toString(),
+                                  accounts[0].address
+                              )
                               assert.equal(raffleState, 0)
                               assert.equal(
                                   winnerEndingBalance.toString(),
-                                  winnerStartingBalance.add(raffleEntranceFee).toString()
+                                  winnerStartingBalance
+                                      .add(raffleEntranceFee)
+                                      .toString()
                               )
                               assert(endingTimeStamp > startingTimeStamp)
                               resolve()
@@ -45,8 +55,14 @@ const { developementChains, networkConfig } = require("../../helper-hardhat-conf
                           }
                       })
                       //Then entering the raffle
-                      await raffle.enterRaffle({ value: raffleEntranceFee })
-                      const winnerStartingBalance = await accounts[0].getBalance()
+                      console.log("Entering the raffle...")
+                      const tx = await raffle.enterRaffle({
+                          value: raffleEntranceFee,
+                      })
+                      await tx.wait(1)
+                      console.log("Time to wait...")
+                      const winnerStartingBalance =
+                          await accounts[0].getBalance()
                       //and this code won't complete until our listener has finished listening!
                   })
                   //set up the listener before we enter the raffle
